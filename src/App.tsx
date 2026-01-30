@@ -7,7 +7,11 @@ const App: React.FC = () => {
     <div className="App">
       <WaveBackground />
       <div className="content">
-        <h1 className="title">Carbon Token</h1>
+        <h1 className="title">Web3 Wallet Connection</h1>
+        <p className="description">
+          Connect your MetaMask wallet to interact with blockchain applications. 
+          Securely manage your crypto assets and explore the decentralized web.
+        </p>
         <WalletConnect />
       </div>
     </div>
