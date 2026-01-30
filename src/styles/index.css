@@ -1,0 +1,144 @@
+:root {
+  /* Color Palette */
+  --color-bg-primary: #000000;
+  --color-bg-gradient-start: rgba(255, 255, 255, 0.4);
+  --color-bg-gradient-mid: rgba(180, 180, 180, 0.3);
+  --color-bg-gradient-end: rgba(200, 200, 200, 0.2);
+  
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #888888;
+  
+  --color-gradient-start: #ffffff;
+  --color-gradient-end: #888888;
+  
+  --color-glass-bg: rgba(255, 255, 255, 0.1);
+  --color-glass-border: rgba(255, 255, 255, 0.2);
+  
+  --color-shadow-light: rgba(255, 255, 255, 0.3);
+  --color-shadow-button: rgba(255, 255, 255, 0.4);
+  --color-shadow-button-hover: rgba(255, 255, 255, 0.6);
+  --color-shadow-card: rgba(255, 255, 255, 0.15);
+  
+  /* Typography */
+  --font-size-title: 4rem;
+  --font-size-button: 16px;
+  --font-size-text: 1rem;
+  
+  /* Spacing */
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-button: 12px 32px;
+  
+  /* Effects */
+  --border-radius-card: 20px;
+  --border-radius-button: 50px;
+  --letter-spacing-title: 2px;
+  --letter-spacing-button: 1px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.App {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--color-text-primary);
+}
+
+.content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.title {
+  font-size: var(--font-size-title);
+  font-weight: 700;
+  margin: 0;
+  background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: var(--letter-spacing-title);
+  text-transform: uppercase;
+  text-shadow: 0 0 30px var(--color-shadow-light);
+}
+
+.wallet-connect {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  padding: var(--spacing-md);
+  background: var(--color-glass-bg);
+  backdrop-filter: blur(10px);
+  border-radius: var(--border-radius-card);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: 0 8px 32px 0 var(--color-shadow-card);
+  max-width: 400px;
+  width: 90%;
+}
+
+.wallet-connect p {
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-text);
+  color: var(--color-text-primary);
+  word-break: break-all;
+  font-weight: 500;
+}
+
+.wallet-connect button {
+  background: linear-gradient(135deg, var(--color-gradient-start) 0%, var(--color-gradient-end) 100%);
+  color: var(--color-bg-primary);
+  border: none;
+  padding: var(--spacing-button);
+  font-size: var(--font-size-button);
+  font-weight: 600;
+  border-radius: var(--border-radius-button);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px 0 var(--color-shadow-button);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-button);
+}
+
+.wallet-connect button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px 0 var(--color-shadow-button-hover);
+}
+
+.wallet-connect button:active {
+  transform: translateY(0);
+}
+
+.wallet-connect div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
