@@ -4,7 +4,7 @@ let web3: Web3 | null = null;
 
 export const initWeb3 = async (): Promise<Web3 | null> => {
     if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
+        web3 = new Web3(window.ethereum as any);
         try {
             await window.ethereum.request({ method: 'eth_requestAccounts' });
             return web3;
