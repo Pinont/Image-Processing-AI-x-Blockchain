@@ -1,18 +1,12 @@
 import React, { useState, useCallback } from 'react';
+import EventManager, { EVENTS } from '../managers/EventManager';
 import './ImageUpload.css';
-
-interface UploadedImage {
-  IpfsHash: string;
-  PinSize: number;
-  Timestamp: string;
-  url: string;
-}
 
 const ImageUpload: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [uploadedImage, setUploadedImage] = useState<UploadedImage | null>(null);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -30,7 +24,7 @@ const ImageUpload: React.FC = () => {
 
     setSelectedFile(file);
     setError(null);
-    setUploadedImage(null);
+    setUploadSuccess(false);
 
     // Create preview
     const reader = new FileReader();
@@ -69,26 +63,43 @@ const ImageUpload: React.FC = () => {
     }
   };
 
-  // Upload removed: external integration deleted
+  // Send to chat
   const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a file first');
       return;
     }
 
-    setUploading(false);
-    setError('Upload disabled: external upload integration removed.');
+    setUploading(true);
+    setError(null);
+
+    try {
+      // Emit event to ChatBot with the selected file
+      EventManager.emit(EVENTS.IMAGE_UPLOADED, selectedFile);
+      
+      setUploadSuccess(true);
+      setUploading(false);
+      
+      // Close the overlay immediately after sending
+      setTimeout(() => {
+        EventManager.emit(EVENTS.OVERLAY_CLOSE);
+        handleReset();
+      }, 800);
+    } catch (err) {
+      setError('Failed to send image to chat');
+      setUploading(false);
+    }
   };
 
   // Reset form
   const handleReset = () => {
     setSelectedFile(null);
     setPreview(null);
-    setUploadedImage(null);
+    setUploadSuccess(false);
     setError(null);
   };
 
-  // Copy IPFS hash to clipboard
+  // Copy text to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
@@ -96,8 +107,8 @@ const ImageUpload: React.FC = () => {
   return (
     <div className="image-upload-container">
       <div className="upload-card">
-        <h2 className="upload-title">Upload Image to IPFS</h2>
-        <p className="upload-subtitle">Decentralized image storage</p>
+        <h2 className="upload-title">Upload Image to Chat</h2>
+        <p className="upload-subtitle">Send image for AI object detection</p>
 
         {/* Drag and Drop Zone */}
         {!preview && (
@@ -146,7 +157,7 @@ const ImageUpload: React.FC = () => {
               </p>
             </div>
 
-            {!uploadedImage && (
+            {!uploadSuccess && (
               <button
                 onClick={handleUpload}
                 disabled={uploading}
@@ -155,10 +166,10 @@ const ImageUpload: React.FC = () => {
                 {uploading ? (
                   <>
                     <span className="spinner"></span>
-                    Uploading...
+                    Sending...
                   </>
                 ) : (
-                  'Upload to IPFS'
+                  'Send to Chat'
                 )}
               </button>
             )}
@@ -175,58 +186,18 @@ const ImageUpload: React.FC = () => {
           </div>
         )}
 
-        {/* Success Message with IPFS Details */}
-        {uploadedImage && (
+        {/* Success Message */}
+        {uploadSuccess && (
           <div className="success-container">
             <div className="success-badge">
               <svg className="success-icon" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
               </svg>
-              <span>Upload Successful!</span>
+              <span>Image sent to chat!</span>
             </div>
-
-            <div className="ipfs-details">
-              <div className="detail-row">
-                <span className="detail-label">IPFS Hash:</span>
-                <div className="detail-value-container">
-                  <span className="detail-value">{uploadedImage.IpfsHash}</span>
-                  <button
-                    onClick={() => copyToClipboard(uploadedImage.IpfsHash)}
-                    className="copy-button"
-                    aria-label="Copy IPFS hash"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" strokeWidth="2"/>
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" strokeWidth="2"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Size:</span>
-                <span className="detail-value">{(uploadedImage.PinSize / 1024).toFixed(2)} KB</span>
-              </div>
-
-              <div className="detail-row">
-                <span className="detail-label">Gateway URL:</span>
-                <a
-                  href={uploadedImage.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="gateway-link"
-                >
-                  View on IPFS Gateway
-                  <svg className="external-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            <button onClick={handleReset} className="upload-another-button">
-              Upload Another Image
-            </button>
+            <p style={{color: 'rgba(255, 255, 255, 0.7)', marginTop: '1rem', textAlign: 'center'}}>
+              Check your chat to see the image and object detection results.
+            </p>
           </div>
         )}
       </div>

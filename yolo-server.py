@@ -132,7 +132,7 @@ async def chat(req: ChatRequest):
             
             if object_counts:
                 objects_text = ", ".join([f"{count} {name}" if count > 1 else f"1 {name}" for name, count in object_counts.items()])
-                response = f"I analyzed the image and detected: {objects_text}. {req.message if req.message else 'What would you like to know about these objects?'}"
+                response = f"I analyzed the image and detected: {objects_text}."
             else:
                 response = "I didn't detect any recognizable objects in this image. Could you try with a different image or ask me something else?"
             

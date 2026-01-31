@@ -25,7 +25,20 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   };
 
   const disconnectWallet = () => {
+    // Clear wallet address first
+    const currentAddress = walletAddress;
     setWalletAddress(null);
+    
+    // Clear localStorage for this wallet
+    if (currentAddress) {
+      localStorage.removeItem(`dev3_balance_${currentAddress}`);
+      localStorage.removeItem(`redeemed_coupons_${currentAddress}`);
+    }
+    
+    // Emit event for other components to react
+    if (typeof window !== 'undefined' && (window as any).EventManager) {
+      (window as any).EventManager.emit('WALLET_DISCONNECTED');
+    }
   };
 
   return (

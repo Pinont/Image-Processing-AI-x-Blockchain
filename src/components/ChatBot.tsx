@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser } from '../hooks/useUser';
 import { usage_cost } from '../config';
+import EventManager, { EVENTS } from '../managers/EventManager';
 import './ChatBot.css';
 
 interface Message {
@@ -36,8 +37,8 @@ interface Chat {
 }
 
 const ChatBot: React.FC = () => {
-  // Using coin-based usage costs (configured in src/config.ts)
-  const { coinBalance, consumeCoins } = useUser();
+  // Using DEV3 for usage costs (configured in src/config.ts)
+  const { dev3Balance, consumeDev3 } = useUser();
   const [currentChatId, setCurrentChatId] = useState<string>('default');
   const [chats, setChats] = useState<Map<string, Chat>>(new Map([
     ['default', {
@@ -46,7 +47,7 @@ const ChatBot: React.FC = () => {
       messages: [{
         id: '1',
         type: 'bot',
-        content: `Hello! I'm a YOLO object detection assistant. Upload an image and I'll tell you what objects I can detect! Message cost: $${usage_cost.prompt}; Image generation cost: $${usage_cost.generation} (from config).`,
+        content: `Hello! I'm a YOLO object detection assistant. Upload an image and I'll tell you what objects I can detect! Message cost: ${usage_cost.prompt} DEV3; Image generation cost: ${usage_cost.generation} DEV3 (from config).`,
         timestamp: new Date(),
       }],
       lastUpdate: new Date(),
@@ -71,6 +72,40 @@ const ChatBot: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Listen for image uploads from ImageUpload component
+  useEffect(() => {
+    const unsubscribe = EventManager.on(EVENTS.IMAGE_UPLOADED, async (file: File) => {
+      if (file) {
+        // Convert file to preview
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const preview = reader.result as string;
+          
+          // Usage costs (from config module)
+          const imageCost = usage_cost.generation; // per image generation
+          const totalCost = parseFloat(imageCost.toFixed(8));
+
+          if (!consumeDev3(totalCost)) {
+            addMessage('bot', `Sorry, you don't have enough DEV3. You need ${totalCost.toFixed(2)} DEV3 but only have ${dev3Balance.toFixed(2)} DEV3.`);
+            return;
+          }
+
+          // Add user message with image
+          const userContent = 'Please analyze this image';
+          addMessage('user', userContent, preview);
+
+          // Analyze the image immediately
+          await simulateBotResponse(userContent, file, undefined);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [dev3Balance, consumeDev3]);
 
   // Draw detection boxes on canvas
   useEffect(() => {
@@ -252,8 +287,8 @@ const ChatBot: React.FC = () => {
     const imageCost = selectedImage ? usage_cost.generation : 0; // per image generation
     const totalCost = parseFloat((messageCost + imageCost).toFixed(8));
 
-    if (!consumeCoins(totalCost)) {
-      addMessage('bot', `Sorry, you don't have enough balance. You need $${totalCost.toFixed(4)} but only have $${coinBalance.toFixed(4)}.`);
+    if (!consumeDev3(totalCost)) {
+      addMessage('bot', `Sorry, you don't have enough DEV3. You need ${totalCost.toFixed(2)} DEV3 but only have ${dev3Balance.toFixed(2)} DEV3.`);
       return;
     }
 
@@ -466,9 +501,9 @@ const ChatBot: React.FC = () => {
           </div>
 
           <div className="token-cost-info">
-            <span>💬 Message: ${usage_cost.prompt}</span>
-            <span>🖼️ Image: ${usage_cost.generation}</span>
-            <span className="token-balance">Balance: ${coinBalance.toFixed(4)}</span>
+            <span><i className="bi bi-chat-dots-fill"></i> Message: {usage_cost.prompt} DEV3</span>
+            <span><i className="bi bi-image-fill"></i> Image: {usage_cost.generation} DEV3</span>
+            <span className="token-balance"><i className="bi bi-wallet2"></i> Balance: {dev3Balance.toFixed(2)} DEV3</span>
           </div>
         </div>
       </div>
@@ -477,7 +512,7 @@ const ChatBot: React.FC = () => {
       {detectionResult && (
         <div className="detection-panel">
           <div className="detection-header">
-            <h3>🎯 Object Detection</h3>
+            <h3><i className="bi bi-crosshair"></i> Object Detection</h3>
             <button 
               className="close-detection-btn"
               onClick={() => setDetectionResult(null)}

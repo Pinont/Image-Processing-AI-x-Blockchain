@@ -132,6 +132,7 @@ export const EVENTS = {
   UPLOAD_PROGRESS: 'upload:progress',
   UPLOAD_COMPLETED: 'upload:completed',
   UPLOAD_FAILED: 'upload:failed',
+  IMAGE_UPLOADED: 'image:uploaded',
 
   // Drag and drop events
   DRAG_ENTER: 'drag:enter',
@@ -142,7 +143,11 @@ export const EVENTS = {
   OVERLAY_OPEN: 'overlay:open',
   OVERLAY_CLOSE: 'overlay:close',
   MODAL_OPEN: 'modal:open',
-  MODAL_CLOSE: 'modal:close'
+  MODAL_CLOSE: 'modal:close',
+
+  // Token events
+  TOKEN_PURCHASED: 'token:purchased',
+  TOKEN_BALANCE_UPDATED: 'token:balance:updated'
 } as const;
 
 export default EventManager.getInstance();
