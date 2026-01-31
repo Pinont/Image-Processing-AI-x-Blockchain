@@ -5,6 +5,7 @@ interface UserContextType {
   tokens: number;
   coinBalance: number;
   consumeTokens: (amount: number) => boolean;
+  consumeCoins: (amount: number) => boolean;
   addTokens: (amount: number) => void;
   addCoins: (amount: number) => void;
 }
@@ -43,6 +44,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return false;
   };
 
+  const consumeCoins = (amount: number): boolean => {
+    if (coinBalance >= amount) {
+      setCoinBalance(prev => parseFloat((prev - amount).toFixed(8)));
+      return true;
+    }
+    return false;
+  };
+
   const addTokens = (amount: number) => {
     setTokens(prev => prev + amount);
   };
@@ -52,7 +61,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <UserContext.Provider value={{ tokens, coinBalance, consumeTokens, addTokens, addCoins }}>
+    <UserContext.Provider value={{ tokens, coinBalance, consumeTokens, consumeCoins, addTokens, addCoins }}>
       {children}
     </UserContext.Provider>
   );

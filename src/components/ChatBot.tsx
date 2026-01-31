@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUser } from '../hooks/useUser';
+import { usage_cost } from '../config';
 import './ChatBot.css';
 
 interface Message {
@@ -35,7 +36,8 @@ interface Chat {
 }
 
 const ChatBot: React.FC = () => {
-  const { tokens, consumeTokens } = useUser();
+  // Using coin-based usage costs (configured in src/config.ts)
+  const { coinBalance, consumeCoins } = useUser();
   const [currentChatId, setCurrentChatId] = useState<string>('default');
   const [chats, setChats] = useState<Map<string, Chat>>(new Map([
     ['default', {
@@ -44,7 +46,7 @@ const ChatBot: React.FC = () => {
       messages: [{
         id: '1',
         type: 'bot',
-        content: 'Hello! I\'m a YOLO object detection assistant. Upload an image and I\'ll tell you what objects I can detect! Each message costs 10 tokens, and image processing costs 50 tokens.',
+        content: `Hello! I'm a YOLO object detection assistant. Upload an image and I'll tell you what objects I can detect! Message cost: $${usage_cost.prompt}; Image generation cost: $${usage_cost.generation} (from config).`,
         timestamp: new Date(),
       }],
       lastUpdate: new Date(),
@@ -245,12 +247,13 @@ const ChatBot: React.FC = () => {
   const handleSendMessage = async () => {
     if (!inputText.trim() && !selectedImage) return;
 
-    const messageCost = 10;
-    const imageCost = selectedImage ? 50 : 0;
-    const totalCost = messageCost + imageCost;
+    // Usage costs (from config module)
+    const messageCost = usage_cost.prompt; // per text message
+    const imageCost = selectedImage ? usage_cost.generation : 0; // per image generation
+    const totalCost = parseFloat((messageCost + imageCost).toFixed(8));
 
-    if (!consumeTokens(totalCost)) {
-      addMessage('bot', `Sorry, you don't have enough tokens. You need ${totalCost} tokens but only have ${tokens}.`);
+    if (!consumeCoins(totalCost)) {
+      addMessage('bot', `Sorry, you don't have enough balance. You need $${totalCost.toFixed(4)} but only have $${coinBalance.toFixed(4)}.`);
       return;
     }
 
@@ -434,7 +437,7 @@ const ChatBot: React.FC = () => {
               className="file-input-hidden"
               id="chat-file-input"
             />
-            <label htmlFor="chat-file-input" className="attach-btn" title="Attach image (50 tokens)">
+            <label htmlFor="chat-file-input" className="attach-btn" title="Attach image ($0.02)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -444,7 +447,7 @@ const ChatBot: React.FC = () => {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type your message... (10 tokens per message)"
+              placeholder={`Type your message... (~$${usage_cost.prompt} per message)`}
               className="chat-input"
               rows={1}
               disabled={isProcessing}
@@ -463,9 +466,9 @@ const ChatBot: React.FC = () => {
           </div>
 
           <div className="token-cost-info">
-            <span>💬 Message: 10 tokens</span>
-            <span>🖼️ Image: 50 tokens</span>
-            <span className="token-balance">Balance: {tokens} tokens</span>
+            <span>💬 Message: ${usage_cost.prompt}</span>
+            <span>🖼️ Image: ${usage_cost.generation}</span>
+            <span className="token-balance">Balance: ${coinBalance.toFixed(4)}</span>
           </div>
         </div>
       </div>
