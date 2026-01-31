@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import { pinata } from '../utils/pinata';
 import './ImageUpload.css';
 
 interface UploadedImage {
@@ -70,37 +69,15 @@ const ImageUpload: React.FC = () => {
     }
   };
 
-  // Upload to Pinata
+  // Upload removed: external integration deleted
   const handleUpload = async () => {
     if (!selectedFile) {
       setError('Please select a file first');
       return;
     }
 
-    setUploading(true);
-    setError(null);
-
-    try {
-      const upload = await pinata.upload.public.file(selectedFile);
-      
-      // Get gateway URL from environment or use default
-      const gateway = import.meta.env.VITE_PINATA_GATEWAY || 'gateway.pinata.cloud';
-      const gatewayUrl = `https://${gateway}/ipfs/${upload.cid}`;
-
-      setUploadedImage({
-        IpfsHash: upload.cid,
-        PinSize: upload.size,
-        Timestamp: new Date().toISOString(),
-        url: gatewayUrl,
-      });
-
-      console.log('Upload successful:', upload);
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to upload image to Pinata');
-    } finally {
-      setUploading(false);
-    }
+    setUploading(false);
+    setError('Upload disabled: external upload integration removed.');
   };
 
   // Reset form
@@ -120,7 +97,7 @@ const ImageUpload: React.FC = () => {
     <div className="image-upload-container">
       <div className="upload-card">
         <h2 className="upload-title">Upload Image to IPFS</h2>
-        <p className="upload-subtitle">Decentralized image storage powered by Pinata</p>
+        <p className="upload-subtitle">Decentralized image storage</p>
 
         {/* Drag and Drop Zone */}
         {!preview && (

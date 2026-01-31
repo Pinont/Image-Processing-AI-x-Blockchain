@@ -260,7 +260,7 @@ const ChatBot: React.FC = () => {
     const imageToAnalyze = selectedImage;
 
     if (selectedImage) {
-      // Show image preview in chat (not uploaded to Pinata)
+      // Show image preview in chat (not uploaded)
       addMessage('user', userContent, imagePreview || undefined);
     } else {
       addMessage('user', userContent);

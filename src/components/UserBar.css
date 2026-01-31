@@ -154,6 +154,7 @@
 .user-wallet:hover .wallet-stats {
   opacity: 1;
   visibility: visible;
+  background-color: grey;
   transform: translateY(0);
 }
 

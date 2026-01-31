@@ -1,6 +1,3 @@
-import { PinataSDK } from "pinata";
+// Integration removed — this file kept as a placeholder.
 
-export const pinata = new PinataSDK({
-  pinataJwt: import.meta.env.VITE_PINATA_JWT || "",
-  pinataGateway: import.meta.env.VITE_PINATA_GATEWAY || "gateway.pinata.cloud",
-});
+export {};
