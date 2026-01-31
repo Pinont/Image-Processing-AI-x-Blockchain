@@ -105,12 +105,6 @@ const App: React.FC = () => {
               >
                 <i className="bi bi-coin"></i> Get DEV3
               </button>
-              <button 
-                className="nav-btn"
-                onClick={() => setCurrentPage('landing')}
-              >
-                <i className="bi bi-arrow-left"></i> Back to Landing
-              </button>
             </div>
 
                 {/* Page Content */}

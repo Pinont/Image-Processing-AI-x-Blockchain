@@ -11,6 +11,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   const { walletAddress, connectWallet } = useWallet();
   const [scrollY, setScrollY] = useState(0);
   const [winkGetStart, setWinkGetStart] = useState(false);
+  const [cardUnstackProgress, setCardUnstackProgress] = useState(0);
 
   // Auto-navigate when wallet connects
   useEffect(() => {
@@ -26,9 +27,32 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
+      
+      // Calculate card unstack progress based on scroll position
+      const cardsElement = document.querySelector('.features-section');
+      if (cardsElement) {
+        const rect = cardsElement.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        
+        // Start unstacking when section is 60% visible
+        const startPoint = windowHeight * 0.6;
+        const endPoint = windowHeight * 0.3;
+        
+        if (rect.top < startPoint && rect.top > endPoint - rect.height) {
+          // Calculate progress from 0 to 1
+          const scrollProgress = Math.max(0, Math.min(1, (startPoint - rect.top) / (startPoint - endPoint)));
+          setCardUnstackProgress(scrollProgress);
+        } else if (rect.top <= endPoint) {
+          setCardUnstackProgress(1);
+        } else {
+          setCardUnstackProgress(0);
+        }
+      }
     };
 
     window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+    
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -121,13 +145,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         <div className="section-header">
           <h2 className="section-title">Our Ecosystem</h2>
           <p className="section-subtitle">
-            Two powerful components working together
+            Three powerful features working together
           </p>
         </div>
 
-        <div className="features-grid">
-          {/* DEV3 Token Card */}
-          <div className="feature-card token-card">
+        <div className="features-container">
+          <div className="features-grid">
+            {/* DEV3 Token Card - Left card */}
+            <div 
+              className="feature-card token-card"
+              style={{
+                transform: `translateX(${-cardUnstackProgress * 110}%) translateY(${Math.max(0, 5 - (cardUnstackProgress * 5))}px)`,
+                opacity: 0.4 + (cardUnstackProgress * 0.6),
+                zIndex: 1
+              }}
+            >
             <div className="card-icon">
               <i className="bi bi-coin"></i>
             </div>
@@ -161,8 +193,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             </button>
           </div>
 
-          {/* AI Detection Card */}
-          <div className="feature-card ai-card">
+          {/* AI Detection Card - Center card */}
+          <div 
+            className="feature-card ai-card"
+            style={{
+              transform: `translateY(${Math.max(0, 10 - (cardUnstackProgress * 10))}px)`,
+              opacity: 0.5 + (cardUnstackProgress * 0.5),
+              zIndex: 2
+            }}
+          >
             <div className="card-icon">
               <i className="bi bi-robot"></i>
             </div>
@@ -195,6 +234,49 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <i className="bi bi-arrow-right"></i>
             </button>
           </div>
+
+          Blockchain Analytics Card - Right card
+          <div 
+            className="feature-card analytics-card"
+            style={{
+              transform: `translateX(${cardUnstackProgress * 110}%) translateY(${Math.max(0, 15 - (cardUnstackProgress * 15))}px)`,
+              opacity: 0.3 + (cardUnstackProgress * 0.7),
+              zIndex: 3
+            }}
+          >
+            <div className="card-icon">
+              <i className="bi bi-graph-up-arrow"></i>
+            </div>
+            <h3 className="card-title">Blockchain Analytics</h3>
+            <p className="card-description">
+              Advanced on-chain analytics and insights powered by real-time blockchain data. 
+              Track your transactions, monitor token usage, and visualize your AI detection 
+              history with comprehensive dashboards and smart contract integration.
+            </p>
+            <ul className="card-features">
+              <li>
+                <i className="bi bi-check-circle-fill"></i>
+                <span>Real-time transaction tracking</span>
+              </li>
+              <li>
+                <i className="bi bi-check-circle-fill"></i>
+                <span>Smart contract verification</span>
+              </li>
+              <li>
+                <i className="bi bi-check-circle-fill"></i>
+                <span>Usage analytics dashboard</span>
+              </li>
+              <li>
+                <i className="bi bi-check-circle-fill"></i>
+                <span>Immutable detection history</span>
+              </li>
+            </ul>
+            <button className="card-button" onClick={onGetStarted}>
+              <span>View Analytics</span>
+              <i className="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
         </div>
       </section>
 
@@ -288,6 +370,76 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                     <span className="box-label">Dog 88%</span>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Compatible Wallets Marquee Section */}
+      <section className="wallets-marquee-section">
+        <h4 className="wallets-marquee-title">Compatible Wallets</h4>
+        <div className="wallets-marquee-container">
+          {/* Row 1 - Left to Right */}
+          <div className="wallets-marquee-row marquee-left">
+            <div className="wallets-marquee-track">
+              <div className="wallet-logo-item">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" />
+                <span>MetaMask</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Phantom</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Trust Wallet</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Coinbase Wallet</span>
+              </div>
+              {/* Duplicates for seamless loop */}
+              <div className="wallet-logo-item">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" />
+                <span>MetaMask</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Phantom</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Trust Wallet</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Coinbase Wallet</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2 - Right to Left */}
+          <div className="wallets-marquee-row marquee-right">
+            <div className="wallets-marquee-track">
+              <div className="wallet-logo-item">
+                <span>Rainbow</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Ledger</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Argent</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>WalletConnect</span>
+              </div>
+              {/* Duplicates for seamless loop */}
+              <div className="wallet-logo-item">
+                <span>Rainbow</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Ledger</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>Argent</span>
+              </div>
+              <div className="wallet-logo-item">
+                <span>WalletConnect</span>
               </div>
             </div>
           </div>
