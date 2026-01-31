@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import './CursorEffect.css';
 
 const CursorEffect: React.FC = () => {
-    const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 });
+    const cursorRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
-            setCursorPosition({ x: event.clientX, y: event.clientY });
+            if (cursorRef.current) {
+                cursorRef.current.style.left = `${event.clientX}px`;
+                cursorRef.current.style.top = `${event.clientY}px`;
+            }
         };
 
         window.addEventListener('mousemove', handleMouseMove);
@@ -17,7 +20,7 @@ const CursorEffect: React.FC = () => {
     }, []);
 
     return (
-        <div className="cursor-effect" style={{ left: cursorPosition.x, top: cursorPosition.y }} />
+        <div ref={cursorRef} className="cursor-effect" />
     );
 };
 

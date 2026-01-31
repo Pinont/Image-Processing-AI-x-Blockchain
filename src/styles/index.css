@@ -466,6 +466,188 @@ body {
   }
 }
 
+/* ==================== SHARED UTILITY CLASSES ==================== */
+
+/* Shared Button Styles */
+.btn-glass {
+  padding: 12px 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-glass:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-glass:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-gradient {
+  padding: 16px 32px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-gradient:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Shared Glass-morphism Containers */
+.glass-container {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  transition: all 0.3s ease;
+}
+
+.glass-container:hover {
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+/* Shared Icon Wrapper Styles */
+.icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.icon-wrapper-lg {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-wrapper-blue {
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2), rgba(59, 130, 246, 0.1));
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+.icon-wrapper-yellow {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+/* Shared Hover Effects */
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-lift-scale:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Shared SVG Icon Sizing */
+.icon-sm svg {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-md svg {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-lg svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* Shared Scrollbar Styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Shared Animation - Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Shared Typography */
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.text-primary {
+  color: #ffffff;
+}
+
+.text-accent {
+  color: #60a5fa;
+}
+
 /* Responsive grid layout */
 @media (max-width: 768px) {
   .home-content {
