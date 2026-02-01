@@ -27,17 +27,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
-      
+
       // Calculate card unstack progress based on scroll position
       const cardsElement = document.querySelector('.features-section');
       if (cardsElement) {
         const rect = cardsElement.getBoundingClientRect();
         const windowHeight = window.innerHeight;
-        
+
         // Start unstacking when section is 60% visible
         const startPoint = windowHeight * 0.6;
         const endPoint = windowHeight * 0.3;
-        
+
         if (rect.top < startPoint && rect.top > endPoint - rect.height) {
           // Calculate progress from 0 to 1
           const scrollProgress = Math.max(0, Math.min(1, (startPoint - rect.top) / (startPoint - endPoint)));
@@ -52,7 +52,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
     window.addEventListener('scroll', handleScroll);
     handleScroll(); // Initial check
-    
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -63,7 +63,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
   const handleTryDetection = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    
+
     // Trigger wink effect after scroll
     setTimeout(() => {
       setWinkGetStart(true);
@@ -82,7 +82,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   return (
     <div className="landing-page">
       <WaveBackground />
-      
+
       {/* Hero Section */}
       <section className="hero-section" id="hero">
         <div className="hero-content">
@@ -90,27 +90,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <i className="bi bi-shield-check"></i>
             <span>Powered by Web3 & AI</span>
           </div>
-          
+
           <h1 className="hero-title">
             The Future of
             <span className="gradient-text"> AI-Powered </span>
             Web3 Detection
           </h1>
-          
+
           <p className="hero-description">
-            Experience cutting-edge YOLO object detection combined with blockchain technology. 
-            Purchase DEV3 tokens with ETH and unlock powerful AI capabilities in a decentralized ecosystem.
+            Experience cutting-edge YOLO object detection combined with blockchain technology.
+            Purchase MIND tokens with ETH and unlock powerful AI capabilities in a decentralized ecosystem.
           </p>
 
           <div className="hero-actions">
-            <button 
-              className={`cta-button primary ${!walletAddress || winkGetStart ? 'wink-effect' : ''}`} 
+            <button
+              className={`cta-button primary ${!walletAddress || winkGetStart ? 'wink-effect' : ''}`}
               onClick={handleGetStart}
             >
               <i className="bi bi-rocket-takeoff-fill"></i>
               Get Start
             </button>
-            
+
             <button className="cta-button secondary" onClick={() => scrollToSection('features')}>
               <span>Learn More</span>
               <i className="bi bi-arrow-down"></i>
@@ -151,8 +151,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
         <div className="features-container">
           <div className="features-grid">
-            {/* DEV3 Token Card - Left card */}
-            <div 
+            {/* MIND Token Card - Left card */}
+            <div
               className="feature-card token-card"
               style={{
                 transform: `translateX(${-cardUnstackProgress * 110}%) translateY(${Math.max(0, 5 - (cardUnstackProgress * 5))}px)`,
@@ -160,123 +160,123 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
                 zIndex: 1
               }}
             >
-            <div className="card-icon">
-              <i className="bi bi-coin"></i>
+              <div className="card-icon">
+                <i className="bi bi-coin"></i>
+              </div>
+              <h3 className="card-title">MIND Token</h3>
+              <p className="card-description">
+                Our native cryptocurrency that powers the entire platform. Purchase MIND with ETH
+                at a rate of 1 MIND = 0.001 ETH. Use tokens to access AI detection services,
+                chat with our intelligent bot, and unlock premium features.
+              </p>
+              <ul className="card-features">
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Instant ETH to MIND conversion</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Secure blockchain transactions</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Transparent pricing model</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Special coupon codes available</span>
+                </li>
+              </ul>
+              <button className="card-button" onClick={() => window.location.href = '#/tokens'}>
+                <span>Get MIND Tokens</span>
+                <i className="bi bi-arrow-right"></i>
+              </button>
             </div>
-            <h3 className="card-title">DEV3 Token</h3>
-            <p className="card-description">
-              Our native cryptocurrency that powers the entire platform. Purchase DEV3 with ETH 
-              at a rate of 1 DEV3 = 0.001 ETH. Use tokens to access AI detection services, 
-              chat with our intelligent bot, and unlock premium features.
-            </p>
-            <ul className="card-features">
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Instant ETH to DEV3 conversion</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Secure blockchain transactions</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Transparent pricing model</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Special coupon codes available</span>
-              </li>
-            </ul>
-            <button className="card-button" onClick={() => window.location.href = '#/tokens'}>
-              <span>Get DEV3 Tokens</span>
-              <i className="bi bi-arrow-right"></i>
-            </button>
-          </div>
 
-          {/* AI Detection Card - Center card */}
-          <div 
-            className="feature-card ai-card"
-            style={{
-              transform: `translateY(${Math.max(0, 10 - (cardUnstackProgress * 10))}px)`,
-              opacity: 0.5 + (cardUnstackProgress * 0.5),
-              zIndex: 2
-            }}
-          >
-            <div className="card-icon">
-              <i className="bi bi-robot"></i>
+            {/* AI Detection Card - Center card */}
+            <div
+              className="feature-card ai-card"
+              style={{
+                transform: `translateY(${Math.max(0, 10 - (cardUnstackProgress * 10))}px)`,
+                opacity: 0.5 + (cardUnstackProgress * 0.5),
+                zIndex: 2
+              }}
+            >
+              <div className="card-icon">
+                <i className="bi bi-robot"></i>
+              </div>
+              <h3 className="card-title">Image Detection AI</h3>
+              <p className="card-description">
+                State-of-the-art YOLO (You Only Look Once) object detection powered by
+                advanced neural networks. Upload any image and get instant, accurate detection
+                of objects with bounding boxes and confidence scores.
+              </p>
+              <ul className="card-features">
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Real-time object detection</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>80+ object categories</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>High accuracy predictions</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Chat-based interaction</span>
+                </li>
+              </ul>
+              <button className="card-button" onClick={() => scrollToSection('detection')}>
+                <span>Explore AI</span>
+                <i className="bi bi-arrow-right"></i>
+              </button>
             </div>
-            <h3 className="card-title">Image Detection AI</h3>
-            <p className="card-description">
-              State-of-the-art YOLO (You Only Look Once) object detection powered by 
-              advanced neural networks. Upload any image and get instant, accurate detection 
-              of objects with bounding boxes and confidence scores.
-            </p>
-            <ul className="card-features">
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Real-time object detection</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>80+ object categories</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>High accuracy predictions</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Chat-based interaction</span>
-              </li>
-            </ul>
-            <button className="card-button" onClick={() => scrollToSection('detection')}>
-              <span>Explore AI</span>
-              <i className="bi bi-arrow-right"></i>
-            </button>
-          </div>
 
-          Blockchain Analytics Card - Right card
-          <div 
-            className="feature-card analytics-card"
-            style={{
-              transform: `translateX(${cardUnstackProgress * 110}%) translateY(${Math.max(0, 15 - (cardUnstackProgress * 15))}px)`,
-              opacity: 0.3 + (cardUnstackProgress * 0.7),
-              zIndex: 3
-            }}
-          >
-            <div className="card-icon">
-              <i className="bi bi-graph-up-arrow"></i>
+            Blockchain Analytics Card - Right card
+            <div
+              className="feature-card analytics-card"
+              style={{
+                transform: `translateX(${cardUnstackProgress * 110}%) translateY(${Math.max(0, 15 - (cardUnstackProgress * 15))}px)`,
+                opacity: 0.3 + (cardUnstackProgress * 0.7),
+                zIndex: 3
+              }}
+            >
+              <div className="card-icon">
+                <i className="bi bi-graph-up-arrow"></i>
+              </div>
+              <h3 className="card-title">Blockchain Analytics</h3>
+              <p className="card-description">
+                Advanced on-chain analytics and insights powered by real-time blockchain data.
+                Track your transactions, monitor token usage, and visualize your AI detection
+                history with comprehensive dashboards and smart contract integration.
+              </p>
+              <ul className="card-features">
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Real-time transaction tracking</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Smart contract verification</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Usage analytics dashboard</span>
+                </li>
+                <li>
+                  <i className="bi bi-check-circle-fill"></i>
+                  <span>Immutable detection history</span>
+                </li>
+              </ul>
+              <button className="card-button" onClick={onGetStarted}>
+                <span>View Analytics</span>
+                <i className="bi bi-arrow-right"></i>
+              </button>
             </div>
-            <h3 className="card-title">Blockchain Analytics</h3>
-            <p className="card-description">
-              Advanced on-chain analytics and insights powered by real-time blockchain data. 
-              Track your transactions, monitor token usage, and visualize your AI detection 
-              history with comprehensive dashboards and smart contract integration.
-            </p>
-            <ul className="card-features">
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Real-time transaction tracking</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Smart contract verification</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Usage analytics dashboard</span>
-              </li>
-              <li>
-                <i className="bi bi-check-circle-fill"></i>
-                <span>Immutable detection history</span>
-              </li>
-            </ul>
-            <button className="card-button" onClick={onGetStarted}>
-              <span>View Analytics</span>
-              <i className="bi bi-arrow-right"></i>
-            </button>
           </div>
-        </div>
         </div>
       </section>
 
@@ -288,15 +288,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               <i className="bi bi-lightning-charge-fill"></i>
               <span>Powered by YOLO</span>
             </div>
-            
+
             <h2 className="detection-title">
               Advanced Image Detection
             </h2>
-            
+
             <p className="detection-description">
-              Our AI-powered detection system uses the latest YOLO architecture to identify 
-              and locate objects in images with remarkable speed and accuracy. Simply upload 
-              an image through our chat interface, and watch as our AI analyzes and annotates 
+              Our AI-powered detection system uses the latest YOLO architecture to identify
+              and locate objects in images with remarkable speed and accuracy. Simply upload
+              an image through our chat interface, and watch as our AI analyzes and annotates
               it in real-time.
             </p>
 
@@ -452,7 +452,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           <div className="footer-section">
             <div className="footer-brand">
               <i className="bi bi-hexagon-fill"></i>
-              <span>DEV3 AI</span>
+              <span>MIND AI</span>
             </div>
             <p className="footer-tagline">
               Bridging AI and Blockchain for the future of intelligent applications
@@ -477,7 +477,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
             <div className="footer-column">
               <h4>Platform</h4>
               <a href="#">Get Started</a>
-              <a href="#/tokens">Get DEV3</a>
+              <a href="#/tokens">GET MIND</a>
               <a href="#">AI Detection</a>
               <a href="#">Documentation</a>
             </div>
@@ -509,7 +509,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; 2026 DEV3 AI. All rights reserved.</p>
+          <p>&copy; 2026 MIND AI. All rights reserved.</p>
           <div className="footer-badges">
             <span className="badge">
               <i className="bi bi-shield-check"></i>

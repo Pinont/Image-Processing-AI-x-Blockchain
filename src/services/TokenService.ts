@@ -7,10 +7,10 @@ import EventManager, { EVENTS } from '../managers/EventManager';
 export class TokenService {
   private static instance: TokenService;
   private provider: ethers.providers.Web3Provider | null = null;
-  private dev3Balance: number = 0;
-  private readonly DEV3_PRICE_ETH = 0.001; // 1 DEV3 = 0.001 ETH
-  private readonly DEV3_NAME = 'DEV3';
-  private readonly DEV3_SYMBOL = 'DEV3';
+  private MINDBalance: number = 0;
+  private readonly MIND_PRICE_ETH = 0.001; // 1 MIND = 0.001 ETH
+  private readonly MIND_NAME = 'Decentral Mind Token';
+  private readonly MIND_SYMBOL = 'MIND';
 
   private constructor() {
     this.initializeProvider();
@@ -40,7 +40,7 @@ export class TokenService {
         if (accounts.length > 0) {
           // Reload balance for new account
           this.loadTokenBalance();
-          EventManager.emit(EVENTS.TOKEN_BALANCE_UPDATED, { balance: this.dev3Balance });
+          EventManager.emit(EVENTS.TOKEN_BALANCE_UPDATED, { balance: this.MINDBalance });
         }
       });
     }
@@ -49,8 +49,8 @@ export class TokenService {
   private loadTokenBalance(): void {
     const account = this.getCurrentAccount();
     if (account) {
-      const stored = localStorage.getItem(`dev3_balance_${account}`);
-      this.dev3Balance = stored ? parseFloat(stored) : 0;
+      const stored = localStorage.getItem(`MIND_balance_${account}`);
+      this.MINDBalance = stored ? parseFloat(stored) : 0;
     }
   }
 
@@ -58,74 +58,74 @@ export class TokenService {
     const account = this.getCurrentAccount();
     if (account) {
       // Save to localStorage with wallet address
-      localStorage.setItem(`dev3_balance_${account}`, this.dev3Balance.toString());
-      
+      localStorage.setItem(`MIND_balance_${account}`, this.MINDBalance.toString());
+
       // Save last update timestamp
-      localStorage.setItem(`dev3_balance_updated_${account}`, Date.now().toString());
-      
+      localStorage.setItem(`MIND_balance_updated_${account}`, Date.now().toString());
+
       // In production, this would mint/transfer tokens to the wallet address via smart contract
-      // Example: await this.dev3Contract.mint(account, ethers.utils.parseUnits(this.dev3Balance.toString(), 18));
+      // Example: await this.MINDContract.mint(account, ethers.utils.parseUnits(this.MINDBalance.toString(), 18));
     }
   }
 
   private getCurrentAccount(): string | null {
     if (!this.provider) return null;
-    
+
     // Get account from provider
     const ethereum = (window as any).ethereum;
     return ethereum?.selectedAddress || null;
   }
 
   /**
-   * Get current DEV3 balance for connected wallet
+   * Get current MIND balance for connected wallet
    */
   public getBalance(): number {
     // Reload balance to ensure it's current for the active wallet
     this.loadTokenBalance();
-    return this.dev3Balance;
+    return this.MINDBalance;
   }
 
   /**
    * Get balance for a specific wallet address
    */
   public getBalanceForAddress(address: string): number {
-    const stored = localStorage.getItem(`dev3_balance_${address}`);
+    const stored = localStorage.getItem(`MIND_balance_${address}`);
     return stored ? parseFloat(stored) : 0;
   }
 
   /**
-   * Get DEV3 price in ETH
+   * GET MIND price in ETH
    */
   public getTokenPrice(): number {
-    return this.DEV3_PRICE_ETH;
+    return this.MIND_PRICE_ETH;
   }
 
   /**
-   * Get DEV3 name
+   * GET MIND name
    */
   public getTokenName(): string {
-    return this.DEV3_NAME;
+    return this.MIND_NAME;
   }
 
   /**
-   * Get DEV3 symbol
+   * GET MIND symbol
    */
   public getTokenSymbol(): string {
-    return this.DEV3_SYMBOL;
+    return this.MIND_SYMBOL;
   }
 
   /**
-   * Calculate how many DEV3 can be purchased with given ETH amount
+   * Calculate how many MIND can be purchased with given ETH amount
    */
   public calculateTokenAmount(ethAmount: number): number {
-    return ethAmount / this.DEV3_PRICE_ETH;
+    return ethAmount / this.MIND_PRICE_ETH;
   }
 
   /**
-   * Calculate ETH cost for given DEV3 amount
+   * Calculate ETH cost for given MIND amount
    */
   public calculateEthCost(tokenAmount: number): number {
-    return tokenAmount * this.DEV3_PRICE_ETH;
+    return tokenAmount * this.MIND_PRICE_ETH;
   }
 
   /**
@@ -150,30 +150,30 @@ export class TokenService {
         throw new Error('Insufficient ETH balance');
       }
 
-      // Calculate DEV3 to receive
-      const dev3ToReceive = this.calculateTokenAmount(ethAmount);
+      // Calculate MIND to receive
+      const MINDToReceive = this.calculateTokenAmount(ethAmount);
 
       // In a real application, you would send ETH to a contract
       // For this demo, we'll simulate the purchase
-      
+
       // Simulate transaction delay
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Add DEV3 to balance
-      this.dev3Balance += dev3ToReceive;
+      // Add MIND to balance
+      this.MINDBalance += MINDToReceive;
       this.saveTokenBalance();
 
       // Emit event
       EventManager.emit(EVENTS.TOKEN_PURCHASED, {
         ethAmount,
-        tokensReceived: dev3ToReceive,
-        newBalance: this.dev3Balance
+        tokensReceived: MINDToReceive,
+        newBalance: this.MINDBalance
       });
 
       return {
         success: true,
-        message: `Successfully purchased ${dev3ToReceive.toFixed(2)} ${this.DEV3_SYMBOL}`,
-        tokens: dev3ToReceive
+        message: `Successfully purchased ${MINDToReceive.toFixed(2)} ${this.MIND_SYMBOL}`,
+        tokens: MINDToReceive
       };
 
     } catch (error: any) {
@@ -191,7 +191,7 @@ export class TokenService {
   public async getEthBalance(): Promise<number> {
     try {
       if (!this.provider) return 0;
-      
+
       const account = this.getCurrentAccount();
       if (!account) return 0;
 
@@ -213,26 +213,26 @@ export class TokenService {
         throw new Error('No wallet connected');
       }
 
-      const FREE_DEV3_AMOUNT = 1000; // Give 1000 free DEV3
-      
+      const FREE_MIND_AMOUNT = 1000; // Give 1000 free MIND
+
       // Simulate transaction delay
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Add free DEV3 to balance
-      this.dev3Balance += FREE_DEV3_AMOUNT;
+      // Add free MIND to balance
+      this.MINDBalance += FREE_MIND_AMOUNT;
       this.saveTokenBalance();
 
       // Emit event
       EventManager.emit(EVENTS.TOKEN_PURCHASED, {
         ethAmount: 0,
-        tokensReceived: FREE_DEV3_AMOUNT,
-        newBalance: this.dev3Balance
+        tokensReceived: FREE_MIND_AMOUNT,
+        newBalance: this.MINDBalance
       });
 
       return {
         success: true,
-        message: `Successfully claimed ${FREE_DEV3_AMOUNT} free ${this.DEV3_SYMBOL}!`,
-        tokens: FREE_DEV3_AMOUNT
+        message: `Successfully claimed ${FREE_MIND_AMOUNT} free ${this.MIND_SYMBOL}!`,
+        tokens: FREE_MIND_AMOUNT
       };
 
     } catch (error: any) {
@@ -245,7 +245,7 @@ export class TokenService {
   }
 
   /**
-   * Redeem coupon code for DEV3
+   * Redeem coupon code for MIND
    */
   public async redeemCoupon(couponCode: string): Promise<{ success: boolean; message: string; tokens?: number }> {
     try {
@@ -257,15 +257,15 @@ export class TokenService {
       // Check if coupon was already redeemed
       const redeemedCoupons = localStorage.getItem(`redeemed_coupons_${account}`);
       const couponsArray = redeemedCoupons ? JSON.parse(redeemedCoupons) : [];
-      
+
       if (couponsArray.includes(couponCode)) {
         throw new Error('This coupon code has already been redeemed');
       }
 
       // Validate coupon code
       let rewardAmount = 0;
-      
-      if (couponCode === 'FREEDEV3TK1000') {
+
+      if (couponCode === 'FREEMINDTK1000') {
         rewardAmount = 1000;
       } else {
         throw new Error('Invalid coupon code');
@@ -274,8 +274,8 @@ export class TokenService {
       // Simulate transaction delay
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Add DEV3 to balance
-      this.dev3Balance += rewardAmount;
+      // Add MIND to balance
+      this.MINDBalance += rewardAmount;
       this.saveTokenBalance();
 
       // Mark coupon as redeemed
@@ -286,12 +286,12 @@ export class TokenService {
       EventManager.emit(EVENTS.TOKEN_PURCHASED, {
         ethAmount: 0,
         tokensReceived: rewardAmount,
-        newBalance: this.dev3Balance
+        newBalance: this.MINDBalance
       });
 
       return {
         success: true,
-        message: `Coupon redeemed! You received ${rewardAmount} ${this.DEV3_SYMBOL}!`,
+        message: `Coupon redeemed! You received ${rewardAmount} ${this.MIND_SYMBOL}!`,
         tokens: rewardAmount
       };
 
@@ -305,7 +305,7 @@ export class TokenService {
   }
 
   /**
-   * Add DEV3 tokens to user's balance
+   * Add MIND tokens to user's balance
    */
   public addTokens(amount: number): { success: boolean; message: string; newBalance: number } {
     try {
@@ -319,20 +319,20 @@ export class TokenService {
       }
 
       // Add tokens to balance
-      this.dev3Balance += amount;
+      this.MINDBalance += amount;
       this.saveTokenBalance();
 
       // Emit event
       EventManager.emit(EVENTS.TOKEN_PURCHASED, {
         ethAmount: 0,
         tokensReceived: amount,
-        newBalance: this.dev3Balance
+        newBalance: this.MINDBalance
       });
 
       return {
         success: true,
-        message: `Successfully added ${amount.toFixed(2)} ${this.DEV3_SYMBOL} to your account`,
-        newBalance: this.dev3Balance
+        message: `Successfully added ${amount.toFixed(2)} ${this.MIND_SYMBOL} to your account`,
+        newBalance: this.MINDBalance
       };
 
     } catch (error: any) {
@@ -340,13 +340,13 @@ export class TokenService {
       return {
         success: false,
         message: error.message || 'Failed to add tokens',
-        newBalance: this.dev3Balance
+        newBalance: this.MINDBalance
       };
     }
   }
 
   /**
-   * Set DEV3 balance to a specific amount
+   * Set MIND balance to a specific amount
    */
   public setBalance(amount: number): { success: boolean; message: string; newBalance: number } {
     try {
@@ -360,21 +360,21 @@ export class TokenService {
       }
 
       // Set balance
-      const oldBalance = this.dev3Balance;
-      this.dev3Balance = amount;
+      const oldBalance = this.MINDBalance;
+      this.MINDBalance = amount;
       this.saveTokenBalance();
 
       // Emit event
       EventManager.emit(EVENTS.TOKEN_PURCHASED, {
         ethAmount: 0,
         tokensReceived: amount - oldBalance,
-        newBalance: this.dev3Balance
+        newBalance: this.MINDBalance
       });
 
       return {
         success: true,
-        message: `Balance set to ${amount.toFixed(2)} ${this.DEV3_SYMBOL}`,
-        newBalance: this.dev3Balance
+        message: `Balance set to ${amount.toFixed(2)} ${this.MIND_SYMBOL}`,
+        newBalance: this.MINDBalance
       };
 
     } catch (error: any) {
@@ -382,7 +382,7 @@ export class TokenService {
       return {
         success: false,
         message: error.message || 'Failed to set balance',
-        newBalance: this.dev3Balance
+        newBalance: this.MINDBalance
       };
     }
   }
@@ -395,10 +395,10 @@ export class TokenService {
   }
 
   /**
-   * Reset DEV3 balance (for testing)
+   * Reset MIND balance (for testing)
    */
   public resetBalance(): void {
-    this.dev3Balance = 0;
+    this.MINDBalance = 0;
     this.saveTokenBalance();
     EventManager.emit(EVENTS.TOKEN_BALANCE_UPDATED, { balance: 0 });
   }

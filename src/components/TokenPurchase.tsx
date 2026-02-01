@@ -6,9 +6,9 @@ import './TokenPurchase.css';
 const TokenPurchase: React.FC = () => {
   const { walletAddress } = useWallet();
   const [ethAmount, setEthAmount] = useState<string>('');
-  const [dev3Amount, setDev3Amount] = useState<number>(0);
+  const [MINDAmount, setMINDAmount] = useState<number>(0);
   const [ethBalance, setEthBalance] = useState<number>(0);
-  const [dev3Balance, setDev3Balance] = useState<number>(0);
+  const [MINDBalance, setMINDBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [couponCode, setCouponCode] = useState<string>('');
   const [isRedeeming, setIsRedeeming] = useState(false);
@@ -20,21 +20,21 @@ const TokenPurchase: React.FC = () => {
 
   useEffect(() => {
     const eth = parseFloat(ethAmount) || 0;
-    setDev3Amount(TokenService.calculateTokenAmount(eth));
+    setMINDAmount(TokenService.calculateTokenAmount(eth));
   }, [ethAmount]);
 
   const loadBalances = async () => {
     if (!walletAddress) return;
-    
+
     const eth = await TokenService.getEthBalance();
-    const dev3 = TokenService.getBalance();
+    const MIND = TokenService.getBalance();
     setEthBalance(eth);
-    setDev3Balance(dev3);
+    setMINDBalance(MIND);
   };
 
   const handlePurchase = async () => {
     const eth = parseFloat(ethAmount);
-    
+
     if (!eth || eth <= 0) {
       setMessage({ type: 'error', text: 'Please enter a valid ETH amount' });
       return;
@@ -107,8 +107,8 @@ const TokenPurchase: React.FC = () => {
             <span className="balance-value">{ethBalance.toFixed(4)} ETH</span>
           </div>
           <div className="balance-item">
-            <span className="balance-label">Your DEV3 Balance:</span>
-            <span className="balance-value">{dev3Balance.toFixed(2)} {TokenService.getTokenSymbol()}</span>
+            <span className="balance-label">Your MIND Balance:</span>
+            <span className="balance-value">{MINDBalance.toFixed(2)} {TokenService.getTokenSymbol()}</span>
           </div>
         </div>
 
@@ -133,8 +133,8 @@ const TokenPurchase: React.FC = () => {
                 min="0"
                 disabled={isLoading}
               />
-              <button 
-                className="max-btn" 
+              <button
+                className="max-btn"
                 onClick={handleMaxClick}
                 disabled={isLoading}
               >
@@ -148,17 +148,17 @@ const TokenPurchase: React.FC = () => {
           <div className="input-group">
             <label>You Will Receive</label>
             <div className="output-box">
-              <span className="token-amount">{dev3Amount.toFixed(2)}</span>
+              <span className="token-amount">{MINDAmount.toFixed(2)}</span>
               <span className="token-symbol">{TokenService.getTokenSymbol()}</span>
             </div>
           </div>
 
-          <button 
+          <button
             className="purchase-btn"
             onClick={handlePurchase}
             disabled={isLoading || !ethAmount || parseFloat(ethAmount) <= 0 || isRedeeming}
           >
-            {isLoading ? 'Processing...' : 'Purchase DEV3'}
+            {isLoading ? 'Processing...' : `Purchase ${TokenService.getTokenSymbol()}`}
           </button>
 
           <div className="divider-text">OR</div>
@@ -174,8 +174,8 @@ const TokenPurchase: React.FC = () => {
                 placeholder="Enter coupon code"
                 disabled={isRedeeming || isLoading}
               />
-              <button 
-                className="redeem-btn" 
+              <button
+                className="redeem-btn"
                 onClick={handleRedeemCoupon}
                 disabled={isRedeeming || isLoading || !couponCode.trim()}
               >
@@ -196,9 +196,9 @@ const TokenPurchase: React.FC = () => {
           <ol>
             <li>Enter the amount of ETH you want to spend</li>
             <li>See how many {TokenService.getTokenSymbol()} you'll receive</li>
-            <li>Click "Purchase DEV3" to complete the exchange</li>
-            <li>Your DEV3 will be added to your balance instantly</li>
-            <li>Or enter a coupon code to redeem free DEV3</li>
+            <li>Click "Purchase {TokenService.getTokenSymbol()}" to complete the exchange</li>
+            <li>Your {TokenService.getTokenSymbol()} will be added to your balance instantly</li>
+            <li>Or enter a coupon code to redeem free {TokenService.getTokenSymbol()}</li>
           </ol>
         </div>
       </div>

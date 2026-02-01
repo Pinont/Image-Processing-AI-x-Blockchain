@@ -76,7 +76,7 @@ async def detect_objects(req: ImageRequest):
             return {
                 "message": "No recognizable objects found in this image.",
                 "detections": [],
-                "annotated_image": None
+                "annotated_image": f"data:image/jpeg;base64,{annotated_base64}"
             }
         
         summary = ", ".join([f"{name} ({count})" for name, count in object_counts.items()])

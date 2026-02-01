@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useUser } from '../hooks/useUser';
+import { useIdentity } from '../hooks/useIdentity';
 import { usage_cost } from '../config';
 import EventManager, { EVENTS } from '../managers/EventManager';
+import DetectionService from '../services/DetectionService'; // Import DetectionService
 import './ChatBot.css';
 
 interface Message {
@@ -37,9 +39,12 @@ interface Chat {
 }
 
 const ChatBot: React.FC = () => {
-  // Using DEV3 for usage costs (configured in src/config.ts)
-  const { dev3Balance, consumeDev3 } = useUser();
+  // Using MIND for usage costs (configured in src/config.ts)
+  const { MINDBalance, consumeMIND } = useUser();
+  const { identity, updateIdentity } = useIdentity(); // INTEGRATION: Use Identity Hook
   const [currentChatId, setCurrentChatId] = useState<string>('default');
+
+  // Initialize with empty first, will sync from identity
   const [chats, setChats] = useState<Map<string, Chat>>(new Map([
     ['default', {
       id: 'default',
@@ -47,7 +52,7 @@ const ChatBot: React.FC = () => {
       messages: [{
         id: '1',
         type: 'bot',
-        content: `Hello! I'm a YOLO object detection assistant. Upload an image and I'll tell you what objects I can detect! Message cost: ${usage_cost.prompt} DEV3; Image generation cost: ${usage_cost.generation} DEV3 (from config).`,
+        content: `Hello! I'm a YOLO object detection assistant. Upload an image and I'll tell you what objects I can detect! Message cost: ${usage_cost.prompt} MIND; Image generation cost: ${usage_cost.generation} MIND (from config).`,
         timestamp: new Date(),
       }],
       lastUpdate: new Date(),
@@ -81,13 +86,13 @@ const ChatBot: React.FC = () => {
         const reader = new FileReader();
         reader.onloadend = async () => {
           const preview = reader.result as string;
-          
+
           // Usage costs (from config module)
           const imageCost = usage_cost.generation; // per image generation
           const totalCost = parseFloat(imageCost.toFixed(8));
 
-          if (!consumeDev3(totalCost)) {
-            addMessage('bot', `Sorry, you don't have enough DEV3. You need ${totalCost.toFixed(2)} DEV3 but only have ${dev3Balance.toFixed(2)} DEV3.`);
+          if (!consumeMIND(totalCost)) {
+            addMessage('bot', `Sorry, you don't have enough MIND. You need ${totalCost.toFixed(2)} MIND but only have ${MINDBalance.toFixed(2)} MIND.`);
             return;
           }
 
@@ -105,7 +110,7 @@ const ChatBot: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [dev3Balance, consumeDev3]);
+  }, [MINDBalance, consumeMIND]);
 
   // Draw detection boxes on canvas
   useEffect(() => {
@@ -134,6 +139,7 @@ const ChatBot: React.FC = () => {
       content,
       timestamp: new Date(),
       imageUrl,
+      processing: type === 'bot' && !content // Flag processing if bot message has no content yet
     };
     updateCurrentChat(chat => ({
       ...chat,
@@ -141,6 +147,63 @@ const ChatBot: React.FC = () => {
       lastUpdate: new Date(),
     }));
   };
+
+  // SYNC: Load chats from Identity when it becomes available
+  useEffect(() => {
+    if (identity && identity.chats.length > 0) {
+      const loadedChats = new Map<string, Chat>();
+      identity.chats.forEach(session => {
+        loadedChats.set(session.id, {
+          id: session.id,
+          title: `Chat ${new Date(session.timestamp || 0).toLocaleDateString()}`, // Simple title generation
+          lastUpdate: new Date(session.timestamp || Date.now()),
+          messages: session.messages.map(m => ({
+            id: `${session.id}-${m.timestamp}`, // heuristic id
+            type: m.sender,
+            content: m.content,
+            timestamp: new Date(m.timestamp),
+          }))
+        });
+      });
+      console.log("Loaded chats from Identity:", loadedChats);
+      setChats(loadedChats);
+
+      // Select the first chat if default is currently selected
+      if (currentChatId === 'default' && loadedChats.size > 0) {
+        const firstId = loadedChats.keys().next().value;
+        setCurrentChatId(firstId);
+      }
+    }
+  }, [identity]);
+
+  // SYNC: Save chats to Identity when they change
+  // Debounced to avoid too many IPFS uploads
+  useEffect(() => {
+    if (!identity) return;
+
+    const timeout = setTimeout(() => {
+      const sessions = Array.from(chats.values()).map(chat => ({
+        id: chat.id,
+        timestamp: chat.lastUpdate.getTime(),
+        messages: chat.messages.map(m => ({
+          sender: m.type,
+          content: m.content,
+          timestamp: m.timestamp.getTime()
+        }))
+      }));
+
+      // Only update if changed (Deep comparison ommitted for brevity, relying on lastUpdate)
+      // In a real app we'd check diffs content more thoroughly.
+      updateIdentity({
+        ...identity,
+        chats: sessions,
+        lastUpdated: Date.now()
+      });
+    }, 2000); // 2 second debounce
+
+    return () => clearTimeout(timeout);
+  }, [chats]);
+
 
   const createNewChat = () => {
     const newChatId = Date.now().toString();
@@ -155,7 +218,7 @@ const ChatBot: React.FC = () => {
       }],
       lastUpdate: new Date(),
     };
-    
+
     setChats(prev => new Map(prev).set(newChatId, newChat));
     setCurrentChatId(newChatId);
     setShowChatList(false);
@@ -185,7 +248,7 @@ const ChatBot: React.FC = () => {
       timestamp: new Date(),
       processing: true,
     };
-    
+
     updateCurrentChat(chat => ({
       ...chat,
       messages: [...chat.messages, typingMessage],
@@ -201,42 +264,14 @@ const ChatBot: React.FC = () => {
         const base64Image = await getImageBase64(imageFile);
         const base64Data = base64Image.split(',')[1]; // Remove data:image/xxx;base64, prefix
 
-        console.log('Sending image to YOLO server for detection');
+        // Use DetectionService for detection (Delegates to Python API)
+        const result = await DetectionService.detect(base64Image);
+        detections = result.detections;
+        botResponse = `I detected ${detections.length} objects: ${detections.map(d => d.class).join(', ')}.`;
 
-        // Call YOLO detection API
-        const response = await fetch('http://localhost:8000/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: userMessage,
-            image: base64Data,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`YOLO API error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('YOLO Response:', data); // Debug log
-        botResponse = data.response || 'Sorry, I could not analyze the image.';
-        detections = data.detections || [];
-        const annotatedImage = data.annotated_image;
-        
-        console.log('Detections:', detections); // Debug log
-        console.log('Annotated image received:', !!annotatedImage); // Debug log
-        
-        // Set detection result for visualization (with YOLO's annotated image)
-        if (annotatedImage) {
-          setDetectionResult({
-            detections,
-            annotated_image: annotatedImage
-          });
-        }
+        setDetectionResult(result);
       } else {
-        // Text-only chat
+        // Text-only chat (Also could move to DetectionService if we want unified chat)
         const response = await fetch('http://localhost:8000/chat', {
           method: 'POST',
           headers: {
@@ -264,13 +299,13 @@ const ChatBot: React.FC = () => {
       addMessage('bot', botResponse);
     } catch (error: any) {
       console.error('Error calling YOLO server:', error);
-      
+
       // Remove typing indicator on error
       updateCurrentChat(chat => ({
         ...chat,
         messages: chat.messages.filter(m => m.id !== typingId),
       }));
-      
+
       if (error.message?.includes('Failed to fetch') || error.name === 'TypeError') {
         addMessage('bot', 'Connection error: Please make sure the YOLO server is running. Run "python yolo-server.py" in a separate terminal.');
       } else {
@@ -287,8 +322,8 @@ const ChatBot: React.FC = () => {
     const imageCost = selectedImage ? usage_cost.generation : 0; // per image generation
     const totalCost = parseFloat((messageCost + imageCost).toFixed(8));
 
-    if (!consumeDev3(totalCost)) {
-      addMessage('bot', `Sorry, you don't have enough DEV3. You need ${totalCost.toFixed(2)} DEV3 but only have ${dev3Balance.toFixed(2)} DEV3.`);
+    if (!consumeMIND(totalCost)) {
+      addMessage('bot', `Sorry, you don't have enough MIND. You need ${totalCost.toFixed(2)} MIND but only have ${MINDBalance.toFixed(2)} MIND.`);
       return;
     }
 
@@ -370,8 +405,8 @@ const ChatBot: React.FC = () => {
             <h3>Your Chats</h3>
             <div className="chat-list">
               {Array.from(chats.values()).map(chat => (
-                <div 
-                  key={chat.id} 
+                <div
+                  key={chat.id}
                   className={`chat-list-item ${chat.id === currentChatId ? 'active' : ''}`}
                   onClick={() => switchChat(chat.id)}
                 >
@@ -389,17 +424,17 @@ const ChatBot: React.FC = () => {
       {/* Main Content Area */}
       <div className="chat-content-wrapper">
         <div className="chat-window">
-        {/* Messages */}
-        <div className="messages-container">{messages.map((message) => (
+          {/* Messages */}
+          <div className="messages-container">{messages.map((message) => (
             <div key={message.id} className={`message ${message.type}-message`}>
               <div className="message-avatar">
                 {message.type === 'bot' ? (
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
                   </svg>
                 ) : (
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
                 )}
               </div>
@@ -428,124 +463,144 @@ const ChatBot: React.FC = () => {
               </div>
             </div>
           ))}
-          {isProcessing && (
-            <div className="message bot-message">
-              <div className="message-avatar">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                </svg>
-              </div>
-              <div className="message-content">
-                <div className="message-text typing-bubble">
-                  <div className="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+            {isProcessing && (
+              <div className="message bot-message">
+                <div className="message-avatar">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+                  </svg>
+                </div>
+                <div className="message-content">
+                  <div className="message-text typing-bubble">
+                    <div className="typing-indicator">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area */}
-        <div className="chat-input-area">
-          {imagePreview && (
-            <div className="image-preview-container">
-              <div className="image-preview-wrapper">
-                <img src={imagePreview} alt="Preview" />
-                <button onClick={removeSelectedImage} className="remove-image-btn">
-                  ×
-                </button>
-              </div>
-              <span className="image-preview-name">{selectedImage?.name}</span>
-            </div>
-          )}
-          
-          <div className="input-controls">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              className="file-input-hidden"
-              id="chat-file-input"
-            />
-            <label htmlFor="chat-file-input" className="attach-btn" title="Attach image ($0.02)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </label>
-            
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={`Type your message... (~$${usage_cost.prompt} per message)`}
-              className="chat-input"
-              rows={1}
-              disabled={isProcessing}
-            />
-            
-            <button
-              onClick={handleSendMessage}
-              disabled={(!inputText.trim() && !selectedImage) || isProcessing}
-              className="send-btn"
-              title="Send message"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="token-cost-info">
-            <span><i className="bi bi-chat-dots-fill"></i> Message: {usage_cost.prompt} DEV3</span>
-            <span><i className="bi bi-image-fill"></i> Image: {usage_cost.generation} DEV3</span>
-            <span className="token-balance"><i className="bi bi-wallet2"></i> Balance: {dev3Balance.toFixed(2)} DEV3</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Detection Visualization Panel */}
-      {detectionResult && (
-        <div className="detection-panel">
-          <div className="detection-header">
-            <h3><i className="bi bi-crosshair"></i> Object Detection</h3>
-            <button 
-              className="close-detection-btn"
-              onClick={() => setDetectionResult(null)}
-              title="Close detection panel"
-            >
-              ×
-            </button>
-          </div>
-          <div className="detection-canvas-wrapper">
-            {detectionResult.annotated_image ? (
-              <img 
-                src={detectionResult.annotated_image} 
-                alt="Detected objects" 
-                className="detection-canvas"
-              />
-            ) : (
-              <p style={{color: 'white', textAlign: 'center'}}>No image to display</p>
             )}
+            <div ref={messagesEndRef} />
           </div>
-          <div className="detection-list">
-            <h4>Detected Objects:</h4>
-            {detectionResult.detections.map((detection, index) => (
-              <div key={index} className="detection-item">
-                <span className="detection-class">{detection.class}</span>
-                <span className="detection-confidence">
-                  {(detection.confidence * 100).toFixed(1)}%
-                </span>
+
+          {/* Input Area */}
+          <div className="chat-input-area">
+            {imagePreview && (
+              <div className="image-preview-container">
+                <div className="image-preview-wrapper">
+                  <img src={imagePreview} alt="Preview" />
+                  <button onClick={removeSelectedImage} className="remove-image-btn">
+                    ×
+                  </button>
+                </div>
+                <span className="image-preview-name">{selectedImage?.name}</span>
               </div>
-            ))}
+            )}
+
+            <div className="input-controls">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="file-input-hidden"
+                id="chat-file-input"
+              />
+              <label htmlFor="chat-file-input" className="attach-btn" title="Attach image ($0.02)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </label>
+
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={`Type your message... (~$${usage_cost.prompt} per message)`}
+                className="chat-input"
+                rows={1}
+                disabled={isProcessing}
+              />
+
+              <button
+                onClick={handleSendMessage}
+                disabled={(!inputText.trim() && !selectedImage) || isProcessing}
+                className="send-btn"
+                title="Send message"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="token-cost-info">
+              <span><i className="bi bi-chat-dots-fill"></i> Message: {usage_cost.prompt} MIND</span>
+              <span><i className="bi bi-image-fill"></i> Image: {usage_cost.generation} MIND</span>
+              <span className="token-balance"><i className="bi bi-wallet2"></i> Balance: {MINDBalance.toFixed(2)} MIND</span>
+            </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {/* Detection Visualization Panel */}
+        {detectionResult && (
+          <div className="detection-panel">
+            <div className="detection-header">
+              <h3><i className="bi bi-crosshair"></i> Object Detection</h3>
+              <button
+                className="close-detection-btn"
+                onClick={() => setDetectionResult(null)}
+                title="Close detection panel"
+              >
+                ×
+              </button>
+            </div>
+            <div className="detection-canvas-wrapper">
+              {detectionResult.annotated_image ? (
+                <img
+                  src={detectionResult.annotated_image}
+                  alt="Detected objects"
+                  className="detection-canvas"
+                />
+              ) : (
+                <p style={{ color: 'white', textAlign: 'center' }}>No image to display</p>
+              )}
+            </div>
+            <div className="provenance-actions" style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem' }}>
+              <button
+                className="btn-gradient"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}
+                onClick={async () => {
+                  if (!selectedImage || !detectionResult) return;
+                  try {
+                    const { ProvenanceService } = await import('../services/ProvenanceService');
+                    addMessage('bot', 'Recording provenance on-chain... Please confirm transaction.');
+                    const { txHash } = await ProvenanceService.recordProvenance(selectedImage, detectionResult);
+                    addMessage('bot', `Provenance recorded! Tx: ${txHash}`);
+                  } catch (e: any) {
+                    addMessage('bot', `Failed to record provenance: ${e.message}`);
+                  }
+                }}
+              >
+                <i className="bi bi-shield-lock-fill"></i>
+                <span>Record Proof on Chain</span>
+              </button>
+            </div>
+            <div className="detection-list">
+              <h4>Detected Objects:</h4>
+              {detectionResult.detections.map((detection, index) => (
+                <div key={index} className="detection-item">
+                  <span className="detection-class">{detection.class}</span>
+                  <span className="detection-confidence">
+                    {(detection.confidence * 100).toFixed(1)}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

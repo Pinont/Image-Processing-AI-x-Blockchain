@@ -6,11 +6,12 @@ import ImageUpload from './components/ImageUpload';
 import ChatBot from './components/ChatBot';
 import TokenPurchase from './components/TokenPurchase';
 import LandingPage from './components/LandingPage';
+import IdentityProfile from './components/IdentityProfile';
 import useWallet from './hooks/useWallet';
 import EventManager, { EVENTS } from './managers/EventManager';
 import './styles/index.css';
 
-type Page = 'landing' | 'home' | 'token-purchase';
+type Page = 'landing' | 'home' | 'token-purchase' | 'profile';
 
 const App: React.FC = () => {
   const { walletAddress } = useWallet();
@@ -81,66 +82,76 @@ const App: React.FC = () => {
       ) : (
         <>
           <WaveBackground />
-          
+
           {/* UserBar as Fixed Overlay */}
           {walletAddress && (
             <div className="userbar-overlay-container">
               <UserBar />
             </div>
           )}
-          
+
           {/* Main Content Area */}
           <div className="main-container">
             {/* Navigation Bar */}
             <div className="navigation-bar">
-              <button 
+              <button
                 className={`nav-btn ${currentPage === 'home' ? 'active' : ''}`}
                 onClick={() => setCurrentPage('home')}
               >
                 <i className="bi bi-house-door-fill"></i> Home
               </button>
-              <button 
+              <button
                 className={`nav-btn ${currentPage === 'token-purchase' ? 'active' : ''}`}
                 onClick={() => setCurrentPage('token-purchase')}
               >
-                <i className="bi bi-coin"></i> Get DEV3
+                <i className="bi bi-coin"></i> GET MIND
+              </button>
+              <button
+                className={`nav-btn ${currentPage === 'profile' ? 'active' : ''}`}
+                onClick={() => setCurrentPage('profile')}
+              >
+                <i className="bi bi-person-badge-fill"></i> Profile
               </button>
             </div>
 
-                {/* Page Content */}
-                {currentPage === 'home' ? (
-                  <div className="home-content">
-                    <div className="content-grid">
-                      <div className="content-section chatbot-section">
-                        <ChatBot />
-                      </div>
+            {/* Page Content */}
+            {currentPage === 'home' ? (
+              <div className="home-content">
+                <div className="content-grid">
+                  <div className="content-section chatbot-section">
+                    <ChatBot />
+                  </div>
+                </div>
+                {showUpload && (
+                  <>
+                    <div className="overlay-backdrop" onClick={() => setShowUpload(false)} />
+                    <div className={`upload-overlay ${isDragging ? 'dragging' : ''}`}>
+                      <button
+                        className="close-upload-btn"
+                        onClick={() => setShowUpload(false)}
+                        aria-label="Close upload"
+                      >
+                        ✕
+                      </button>
+                      <ImageUpload />
                     </div>
-                    {showUpload && (
-                      <>
-                        <div className="overlay-backdrop" onClick={() => setShowUpload(false)} />
-                        <div className={`upload-overlay ${isDragging ? 'dragging' : ''}`}>
-                          <button 
-                            className="close-upload-btn" 
-                            onClick={() => setShowUpload(false)}
-                            aria-label="Close upload"
-                          >
-                            ✕
-                          </button>
-                          <ImageUpload />
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div className="page-content">
-                    <TokenPurchase />
-                  </div>
+                  </>
                 )}
               </div>
-            </>
-          )}
-        </div>
-      );
-    };
-    
-    export default App;
+            ) : currentPage === 'profile' ? (
+              <div className="page-content">
+                <IdentityProfile />
+              </div>
+            ) : (
+              <div className="page-content">
+                <TokenPurchase />
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+export default App;

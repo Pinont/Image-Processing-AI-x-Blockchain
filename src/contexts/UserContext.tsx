@@ -2,47 +2,47 @@ import React, { createContext, useState, ReactNode, useContext, useEffect } from
 import { WalletContext } from './WalletContext';
 
 interface UserContextType {
-  dev3Balance: number;
-  consumeDev3: (amount: number) => boolean;
-  addDev3: (amount: number) => void;
+  MINDBalance: number;
+  consumeMIND: (amount: number) => boolean;
+  addMIND: (amount: number) => void;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const walletContext = useContext(WalletContext);
-  const [dev3Balance, setDev3Balance] = useState<number>(1000); // Starting DEV3 balance
+  const [MINDBalance, setMINDBalance] = useState<number>(1000); // Starting MIND balance
 
   // Load user data from localStorage when wallet connects
   useEffect(() => {
     if (walletContext?.walletAddress) {
-      const savedDev3 = localStorage.getItem(`dev3_balance_${walletContext.walletAddress}`);
-      
-      if (savedDev3) setDev3Balance(parseFloat(savedDev3));
+      const savedMIND = localStorage.getItem(`MIND_balance_${walletContext.walletAddress}`);
+
+      if (savedMIND) setMINDBalance(parseFloat(savedMIND));
     }
   }, [walletContext?.walletAddress]);
 
   // Save user data to localStorage
   useEffect(() => {
     if (walletContext?.walletAddress) {
-      localStorage.setItem(`dev3_balance_${walletContext.walletAddress}`, dev3Balance.toString());
+      localStorage.setItem(`MIND_balance_${walletContext.walletAddress}`, MINDBalance.toString());
     }
-  }, [dev3Balance, walletContext?.walletAddress]);
+  }, [MINDBalance, walletContext?.walletAddress]);
 
-  const consumeDev3 = (amount: number): boolean => {
-    if (dev3Balance >= amount) {
-      setDev3Balance(prev => parseFloat((prev - amount).toFixed(2)));
+  const consumeMIND = (amount: number): boolean => {
+    if (MINDBalance >= amount) {
+      setMINDBalance(prev => parseFloat((prev - amount).toFixed(2)));
       return true;
     }
     return false;
   };
 
-  const addDev3 = (amount: number) => {
-    setDev3Balance(prev => parseFloat((prev + amount).toFixed(2)));
+  const addMIND = (amount: number) => {
+    setMINDBalance(prev => parseFloat((prev + amount).toFixed(2)));
   };
 
   return (
-    <UserContext.Provider value={{ dev3Balance, consumeDev3, addDev3 }}>
+    <UserContext.Provider value={{ MINDBalance, consumeMIND, addMIND }}>
       {children}
     </UserContext.Provider>
   );

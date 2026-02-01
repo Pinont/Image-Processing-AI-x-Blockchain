@@ -6,7 +6,7 @@ import './UserBar.css';
 
 const UserBar: React.FC = () => {
   const { walletAddress, disconnectWallet } = useWallet();
-  const [dev3Balance, setDev3Balance] = useState<number>(0);
+  const [MINDBalance, setMINDBalance] = useState<number>(0);
   const [ethBalance, setEthBalance] = useState<number>(0);
 
   const handleDisconnect = () => {
@@ -29,7 +29,7 @@ const UserBar: React.FC = () => {
 
   const loadBalances = async () => {
     if (!walletAddress) return;
-    setDev3Balance(TokenService.getBalance());
+    setMINDBalance(TokenService.getBalance());
     const eth = await TokenService.getEthBalance();
     setEthBalance(eth);
   };
@@ -61,20 +61,20 @@ const UserBar: React.FC = () => {
                 </div>
                 <span>{formatAddress(walletAddress)}</span>
               </div>
-              
+
               {/* Stats shown on hover */}
               <div className="wallet-stats">
-                {/* DEV3 Balance */}
+                {/* MIND Balance */}
                 <div className="user-stat">
-                  <div className="stat-icon dev3-icon">
+                  <div className="stat-icon MIND-icon">
                     <svg viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="12" cy="12" r="10" />
                       <text x="12" y="16" textAnchor="middle" fontSize="8" fill="white" fontWeight="bold">D3</text>
                     </svg>
                   </div>
                   <div className="stat-info">
-                    <span className="stat-label">DEV3</span>
-                    <span className="stat-value">{dev3Balance.toFixed(2)}</span>
+                    <span className="stat-label">MIND</span>
+                    <span className="stat-value">{MINDBalance.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -82,7 +82,7 @@ const UserBar: React.FC = () => {
                 <div className="user-stat">
                   <div className="stat-icon eth-icon">
                     <svg viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2L4 12.5l8 4.5 8-4.5L12 2zm0 13l-8-4.5L12 22l8-11.5-8 4.5z"/>
+                      <path d="M12 2L4 12.5l8 4.5 8-4.5L12 2zm0 13l-8-4.5L12 22l8-11.5-8 4.5z" />
                     </svg>
                   </div>
                   <div className="stat-info">
@@ -91,7 +91,7 @@ const UserBar: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <button onClick={handleDisconnect} className="disconnect-btn" title="Disconnect Wallet">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

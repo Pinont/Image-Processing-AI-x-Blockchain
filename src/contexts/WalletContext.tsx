@@ -26,18 +26,18 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
   const disconnectWallet = () => {
     console.log('WalletContext: Disconnecting wallet...', walletAddress);
-    
+
     // Clear wallet address first
     const currentAddress = walletAddress;
-    
+
     // Clear localStorage for this wallet
     if (currentAddress) {
-      localStorage.removeItem(`dev3_balance_${currentAddress}`);
+      localStorage.removeItem(`MIND_balance_${currentAddress}`);
       localStorage.removeItem(`redeemed_coupons_${currentAddress}`);
-      localStorage.removeItem(`dev3_balance_updated_${currentAddress}`);
+      localStorage.removeItem(`MIND_balance_updated_${currentAddress}`);
       console.log('WalletContext: Cleared data for', currentAddress);
     }
-    
+
     // Set wallet address to null
     setWalletAddress(null);
     console.log('WalletContext: Wallet disconnected');
